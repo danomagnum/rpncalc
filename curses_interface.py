@@ -58,7 +58,7 @@ input_string_post = ''
 history = []
 history_position = 0
 
-historyfile = open('history', 'r')
+historyfile = open('history', 'w+')
 history = historyfile.readlines()
 
 inputbox.box()

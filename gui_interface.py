@@ -48,7 +48,7 @@ class BadPythonCommand(Exception):
 history = []
 history_position = 0
 
-historyfile = open('history', 'r')
+historyfile = open('history', 'w+')
 history = historyfile.readlines()
 
 def editor_validator(keystroke):
