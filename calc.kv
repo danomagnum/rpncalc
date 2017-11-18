@@ -1,0 +1,351 @@
+#:kivy 1.2.0
+
+<CalcButton@Button>:
+	on_press: self.parent.app_root._execute(self.text)
+	background_color: [1, 1, 1, 1]
+	color: [1, 1, 1, 1]
+	#font_size: self.width/2
+	#size_hint: 0.2, 0.1
+
+<CalcButtonOp@CalcButton>:
+	background_color: [0.6, 0.6, 0.6, 1]
+	color: [0.2, 0.8, 1, 1]
+
+<CalcButtonSpecial@CalcButton>:
+	background_color: [0.3, 0.6, 0.6, 1]
+	color: [0, 1, 1, 1]
+			
+<VertiLabel@Label>:
+	canvas.before:
+		PushMatrix
+		Rotate:
+			angle: 90
+			origin: self.center
+	size_hint: 0.1, 1
+
+	canvas.after:
+		PopMatrix
+
+<BottomPage@BoxLayout>:
+	app_root: self.parent.app_root
+	orientation: 'horizontal'
+	cols: 5
+	canvas.before:
+		Color:
+			rgba: 0, 0, 0, 1
+		Rectangle:
+			pos: self.pos
+			size: self.size
+	canvas:
+		Color:
+			rgba: 1, 1, 1, 1
+		Line:
+			width: 1
+			rectangle: (self.x, self.y, self.width, self.height)
+
+<LineEntry@BoxLayout>:
+	orientation: 'horizontal'
+	size_hint_y: 0.05
+	height: '20sp'
+	number: numberlabel
+	value: valuelabel
+	Label:
+		size_hint_x: 0
+		text_size: self.size	
+		width: '20sp'
+		id: numberlabel
+		text: '>'
+	Label:
+		text_size: self.size	
+		id: valuelabel
+		halign: 'left'
+
+<ButtonColumn@BoxLayout>:
+	width: root.width
+	height: root.height
+	orientation: 'vertical'
+	app_root: self.parent.app_root
+	width: self.parent.width / (self.parent.cols + 1)
+
+<Calculator>:
+	entryline: entryline2
+	stackline8: stackline8
+	stackline7: stackline7
+	stackline6: stackline6
+	stackline5: stackline5
+	stackline4: stackline4
+	stackline3: stackline3
+	stackline2: stackline2
+	stackline1: stackline1
+	stackline0: stackline0
+	messageline: messageline
+	BoxLayout:
+		width: root.width
+		height: root.height
+		orientation: 'vertical'
+		app_root: self.parent
+		LineEntry: 
+			id: stackline8
+		LineEntry: 
+			id: stackline7
+		LineEntry: 
+			id: stackline6
+		LineEntry: 
+			id: stackline5
+		LineEntry: 
+			id: stackline4
+		LineEntry: 
+			id: stackline3
+		LineEntry: 
+			id: stackline2
+		LineEntry: 
+			id: stackline1
+		LineEntry: 
+			id: stackline0
+
+		TextInput:
+			size_hint: 1, 0.05
+			id: entryline2
+			multiline: False
+			keyboard_suggestions: False
+
+			on_text_validate: root._execute('enter')
+
+		PageLayout:
+			app_root: self.parent.app_root
+			BottomPage:
+				VertiLabel:
+					text: "Basic"
+				ButtonColumn:
+					CalcButtonOp:
+						text: "*"
+					CalcButton:
+						text: "7"
+					CalcButton:
+						text: "4"
+					CalcButton:
+						text: "1"
+					CalcButton:
+						text: "0"
+				ButtonColumn:
+					CalcButtonOp:
+						text: "+"
+					CalcButton:
+						text: "8"
+					CalcButton:
+						text: "5"
+					CalcButton:
+						text: "2"
+					CalcButton:
+						text: "00"
+				ButtonColumn:
+					CalcButtonOp:
+						text: "^"
+					CalcButton:
+						text: "9"
+					CalcButton:
+						text: "6"
+					CalcButton:
+						text: "3"
+					CalcButton:
+						text: "."
+				ButtonColumn:
+					CalcButtonOp:
+						text: "/"
+					CalcButtonOp:
+						text: "-"
+					CalcButtonOp:
+						text: "sqrt"
+					CalcButtonOp:
+						text: "%"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "clear !"
+					CalcButtonSpecial:
+						text: "drop"
+					CalcButtonSpecial:
+						text: "space"
+					CalcButtonSpecial:
+						text: "enter"
+			BottomPage:
+				cols: 6
+				VertiLabel:
+					text: "Programming"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "="
+					CalcButtonSpecial:
+						text: "["
+					CalcButtonSpecial:
+						text: "]"
+					CalcButtonSpecial:
+						text: "<"
+					CalcButtonSpecial:
+						text: ">"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: ">="
+					CalcButtonSpecial:
+						text: "<="
+					CalcButtonSpecial:
+						text: "=="
+					CalcButtonSpecial:
+						text: "not"
+					CalcButtonSpecial:
+						text: "drops"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "if"
+					CalcButtonSpecial:
+						text: "ifelse"
+					CalcButtonSpecial:
+						text: "while"
+					CalcButtonSpecial:
+						text: "break"
+					CalcButtonSpecial:
+						text: "size"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "null"
+					CalcButtonSpecial:
+						text: "isnull"
+					CalcButtonSpecial:
+						text: "roll"
+					CalcButtonSpecial:
+						text: "pick"
+					CalcButtonSpecial:
+						text: "tuck"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "over"
+					CalcButtonSpecial:
+						text: "rot"
+					CalcButtonSpecial:
+						text: "dup"
+					CalcButtonSpecial:
+						text: "clear"
+					CalcButtonSpecial:
+						text: "all"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "!"
+					CalcButtonSpecial:
+						text: "space"
+			BottomPage:
+				VertiLabel:
+					text: "Display"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "int"
+					CalcButtonSpecial:
+						text: "float"
+					CalcButtonSpecial:
+						text: "bin"
+					CalcButtonSpecial:
+						text: "hex"
+					CalcButtonSpecial:
+						text: "oct"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "dec"
+					CalcButtonSpecial:
+						text: "ascii"
+			BottomPage:
+				VertiLabel:
+					text: "Debug"
+				ButtonColumn:
+					CalcButtonSpecial:
+						text: "step"
+					CalcButtonSpecial:
+						text: "run"
+					CalcButtonSpecial:
+						text: "@"
+			BottomPage:
+				VertiLabel:
+					text: "Import/Export"
+				ButtonColumn:
+					Button:
+						text: "Import Instructions"
+						on_press: self.parent.app_root.show_import()
+					Button:
+						text: "Load State"
+						on_press: self.parent.app_root.show_load()
+					Button:
+						text: "Save State"
+						on_press: self.parent.app_root.show_save()
+
+
+		LineEntry: 
+			id: messageline
+
+
+
+
+##### Save and load widgets
+
+
+<LoadDialog>:
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		FileChooserListView:
+			id: filechooser
+
+		BoxLayout:
+			size_hint_y: None
+			height: 30
+			Button:
+				text: "Cancel"
+				on_release: root.cancel()
+
+			Button:
+				text: "Load"
+				on_release: root.load(filechooser.path, filechooser.selection)
+
+<ImportDialog>:
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		FileChooserListView:
+			id: filechooser
+
+		BoxLayout:
+			size_hint_y: None
+			height: 30
+			Button:
+				text: "Cancel"
+				on_release: root.cancel()
+
+			Button:
+				text: "Import"
+				on_release: root.import_file(filechooser.path, filechooser.selection)
+
+
+<SaveDialog>:
+	text_input: text_input
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		FileChooserListView:
+			id: filechooser
+			on_selection: text_input.text = self.selection and self.selection[0] or ''
+
+		TextInput:
+			id: text_input
+			size_hint_y: None
+			height: 30
+			multiline: False
+
+		BoxLayout:
+			size_hint_y: None
+			height: 30
+			Button:
+				text: "Cancel"
+				on_release: root.cancel()
+
+			Button:
+				text: "Save"
+				on_release: root.save(filechooser.path, text_input.text)
