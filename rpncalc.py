@@ -222,7 +222,12 @@ def exponent(interp, b, a):
 	return [Value(a.val ** b.val, comment)]
 
 def size(interp):
-	return [Value(interp.stacksize())]
+	return [Value(len(interp))]
+	#return [Value(interp.stacksize())]
+
+def subsize(interp, a):
+	return [a, Value(len(a))]
+
 
 def negate(interp, a):
 	if a.val == 1:
@@ -329,6 +334,7 @@ ops = {'+': add, # tested
        'while': condition_while,
        'break': condition_while_break,
        '^': exponent, # tested
+       '\\size': subsize,
        'size': size,
        'bin': binary,
        'hex': hexadecimal,
@@ -410,6 +416,18 @@ class Function(object):
 			name += ' ' + self.comment + '"'
 		return name
 
+	def __len__(self):
+		if self.stack is None:
+			return 0
+		else:
+			return len(self.stack)
+
+	def get_index(self, index):
+		if index < len(self.stack):
+			return self.stack[index]
+		else:
+			return NULL()
+
 class Variable(object):
 	def __init__(self, name, val=0, comment='', mode=DISPLAY_DEC) :
 		self.name = name
@@ -449,12 +467,24 @@ class Variable(object):
 	def __ne__(self, other):
 		return self.val != other.val
 
+	def __len__(self):
+		if self.val is not None:
+			return len(self.val)
+		else:
+			return 1
+
+	def get_index(self, index):
+		return self.val.get_index(index)
+
 class NULL(object):
 	def __init__(self, comment=''):
 		self.comment = comment
 	def __str__(self) :
 		return 'NULL'
-
+	def __len__(self):
+		return NULL()
+	def get_index(self, index):
+		return NULL()
 
 class Value(object):
 	def __init__(self, val=0, comment='', mode=DISPLAY_DEC) :
@@ -483,6 +513,14 @@ class Value(object):
 		return self.val == other.val
 	def __ne__(self, other):
 		return self.val != other.val
+	def __len__(self):
+		return 1
+
+	def get_index(self, index):
+		if index == 0:
+			return self
+		else:
+			return NULL()
 
 class Interpreter(object):
 	def __init__(self, builtin_functions=None, inline_break_list=None, stack=None, parent=None):
@@ -809,7 +847,26 @@ class Interpreter(object):
 										self.parse(funcname)
 									return
 							#must be a variable
-							if input_string[0] not in '0123456789.':
+
+							if input_string[0] == '\\':
+								val = None
+								try:
+									if len(input_string) == 1:
+										val = int(self.pop()[0].val)
+									else:
+										val = int(input_string[1:])
+									if len(self.stack) > 0:
+										item = self.stack[-1]
+									else:
+										raise NotEnoughOperands("Can't get subitem of an element that isn't there")
+									#self.push(item)
+									v = item.get_index(val)
+									self.push(Value(v))
+									return
+								except:
+									raise
+
+							elif input_string[0] not in '0123456789.':
 								self.push(self.get_var(input_string))
 
 			except (NotEnoughOperands, CantAssign, CantCloseBlock, CantExecute, TypeError, AttributeError, decimal.DivisionByZero, FunctionRequired) as e:
@@ -856,4 +913,5 @@ class Interpreter(object):
 		else:
 			return self.variables[name]
 
-	
+	def __len__(self):
+		return self.stacksize()
