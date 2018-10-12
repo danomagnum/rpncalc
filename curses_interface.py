@@ -78,6 +78,13 @@ def import_file(filename):
 	f = open(filename)
 	commands = f.read()
 	f.close()
+	#print "====================="
+	#print filename
+	#print "====================="
+	#print commands
+	#print "====================="
+	#return
+
 	for command in commands.split('\n'):
 		if len(command) > 0:
 			if command[0] == "#":
@@ -140,9 +147,14 @@ def parse(input_string):
 		interp.parse(input_string, True)
 
 if settings.auto_import_functions:
+	#curses.endwin()
 	for dirpath, dirnames, filenames in os.walk(settings.auto_functions_directory):
 		for filename in filenames:
-			import_file(os.path.join(settings.auto_functions_directory, filename))
+			if len(filename) > 5:
+				if (filename[-4:] == '.rpn') and (filename[0] != '.'):
+					import_file(os.path.join(settings.auto_functions_directory, filename))
+
+	#sys.exit()
 
 
 def setupnumbox():

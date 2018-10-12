@@ -10,6 +10,7 @@ sys.setrecursionlimit(10000)
 
 DEBUG = False
 
+
 log = []
  # default built in functions
 ops = {'+': operators.add, # tested
@@ -396,11 +397,13 @@ class Interpreter(object):
 										val = int(self.pop()[0].val)
 									else:
 										val = int(input_string[1:])
-									if len(self.stack) > 0:
-										item = self.stack[-1]
+									if self.stacksize() > 0:
+										item = self.pop()[0]
+										self.push(item)
 									else:
 										raise errors.NotEnoughOperands("Can't get subitem of an element that isn't there")
 									#self.push(item)
+									#self.message(str(item))
 									v = item.get_index(val)
 									self.parse(str(v))
 									#self.message('parsing ' + str(v))
