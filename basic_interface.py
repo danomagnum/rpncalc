@@ -99,7 +99,9 @@ def parse(input_string):
 if settings.auto_import_functions:
 	for dirpath, dirnames, filenames in os.walk(settings.auto_functions_directory):
 		for filename in filenames:
-			import_file(os.path.join(settings.auto_functions_directory, filename))
+			if len(filename) > 5:
+				if (filename[-4:] == '.rpn') and (filename[0] != '.'):
+					import_file(os.path.join(settings.auto_functions_directory, filename))
 
 loop = True
 
