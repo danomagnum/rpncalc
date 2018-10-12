@@ -403,7 +403,7 @@ class Interpreter(object):
 									#self.push(item)
 									v = item.get_index(val)
 									self.parse(str(v))
-									self.message('parsing ' + str(v))
+									#self.message('parsing ' + str(v))
 									#self.push(rpn_types.Value(v))
 									return
 								except:
