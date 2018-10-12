@@ -1,6 +1,8 @@
 import unittest
 import rpncalc
 import decimal
+import rpn_types
+import errors
 
 
 class BasicMath(unittest.TestCase):
@@ -10,37 +12,37 @@ class BasicMath(unittest.TestCase):
 		self.x1 = 3
 		self.interp.parse('%i %i' %(self.x0, self.x1))
 	def test_start(self):
-		self.assertEqual(self.interp.stack, [rpncalc.Value(self.x0), rpncalc.Value(self.x1)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(self.x0), rpn_types.Value(self.x1)])
 
 	def test_add(self):
 		self.interp.parse('+')
 		result = self.x0 + self.x1
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 	def test_sub(self):
 		self.interp.parse('-')
 		result = self.x0 - self.x1
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 	
 	def test_mult(self):
 		self.interp.parse('*')
 		result = self.x0 * self.x1
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 	def test_div(self):
 		self.interp.parse('/')
 		result = decimal.Decimal(self.x0) / decimal.Decimal(self.x1)
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 	def test_mod(self):
 		self.interp.parse('%')
 		result = self.x0 % self.x1
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 	def test_power(self):
 		self.interp.parse('^')
 		result = self.x0 ** self.x1
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 	
 
 class BasicComparisons(unittest.TestCase):
@@ -50,78 +52,78 @@ class BasicComparisons(unittest.TestCase):
 		self.interp.parse(str(self.xbase))
 
 	def test_start(self):
-		self.assertEqual(self.interp.stack, [rpncalc.Value(self.xbase)])
+		self.assertEqual(self.interp.stack, [rpn_types.Value(self.xbase)])
 
 	def test_equal_fail(self):
 		self.interp.parse(str(self.xbase*2))
 		self.interp.parse('==')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 	def test_equal_success(self):
 		self.interp.parse(str(self.xbase))
 		self.interp.parse('==')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_lessequal_greater_fail(self):
 		self.interp.parse(str(self.xbase*2))
 		self.interp.parse('<=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 	def test_lessequal_equal_success(self):
 		self.interp.parse(str(self.xbase))
 		self.interp.parse('<=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_lessequal_less_success(self):
 		self.interp.parse(str(self.xbase / 2))
 		self.interp.parse('<=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_greaterequal_greater_success(self):
 		self.interp.parse(str(self.xbase*2))
 		self.interp.parse('>=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_greaterequal_equal_success(self):
 		self.interp.parse(str(self.xbase))
 		self.interp.parse('>=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_greaterequal_less_fail(self):
 		self.interp.parse(str(self.xbase / 2))
 		self.interp.parse('>=')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 
 	def test_less_greater_fail(self):
 		self.interp.parse(str(self.xbase*2))
 		self.interp.parse('<')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 	def test_less_equal_fail(self):
 		self.interp.parse(str(self.xbase))
 		self.interp.parse('<')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 	def test_less_less_success(self):
 		self.interp.parse(str(self.xbase / 2))
 		self.interp.parse('<')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_greater_greater_success(self):
 		self.interp.parse(str(self.xbase*2))
 		self.interp.parse('>')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(1))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(1))
 
 	def test_greater_equal_fail(self):
 		self.interp.parse(str(self.xbase))
 		self.interp.parse('>')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 	def test_greater_less_fail(self):
 		self.interp.parse(str(self.xbase / 2))
 		self.interp.parse('>')
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(0))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(0))
 
 class SubroutineTest(unittest.TestCase):
 	def setUp(self):
@@ -148,7 +150,7 @@ class SubroutineTest(unittest.TestCase):
 	def test_simple4(self):
 		function = '[ 2 3  + ] !'
 		self.interp.parse(function)
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(5))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(5))
 
 	def test_strings(self):
 		function = "[ 'hello world' ] !"
@@ -162,12 +164,12 @@ class SubroutineTest(unittest.TestCase):
 	def test_nested(self):
 		function = '[ [ 2 3  + ] ! 7 + ] !'
 		self.interp.parse(function)
-		self.assertEqual(self.interp.stack[-1], rpncalc.Value(12))
+		self.assertEqual(self.interp.stack[-1], rpn_types.Value(12))
 
 	def test_recursive(self):
 		function = '[ q = ` b = ` a = b + c = ` a int b int c int q 1 - q = 0 < [ q fib !  ] if ] fib = '
 		result = [1, 1, 2, 3, 5, 8, 13]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse('1 1 5')
 		self.interp.parse(function)
 		self.interp.parse('!')
@@ -177,7 +179,7 @@ class SubroutineTest(unittest.TestCase):
 		#test that the function can see variables in its parent without changing them
 		function = '3 a = [ a 1 + ] !'
 		result = [3, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
@@ -185,7 +187,7 @@ class SubroutineTest(unittest.TestCase):
 		#test that the function can change unsigiled vars in its parent
 		function = '3 a = [ 4 a = ] !'
 		result = [4, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
@@ -193,7 +195,7 @@ class SubroutineTest(unittest.TestCase):
 		#test that sigils make vars local
 		function = '3 $a = [ 4 $a = ] !'
 		result = [3, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
@@ -201,7 +203,7 @@ class SubroutineTest(unittest.TestCase):
 		#test that sigils make vars local
 		function = '3 $a = [ 4 a = ] !'
 		result = [3, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
@@ -209,7 +211,7 @@ class SubroutineTest(unittest.TestCase):
 		#test that sigils make vars local
 		function = '3 a = [ 4 $a = ] !'
 		result = [3, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
@@ -243,18 +245,18 @@ class OperandCounts(unittest.TestCase):
 	def test_not_enough_operands0(self):
 		try:
 			self.interp.parse('none')
-		except rpncalc.NotEnoughOperands:
+		except errors.NotEnoughOperands:
 			self.fail("Raised a NotEnoughOperands exception when we should not have!")
 
 	def test_not_enough_operands1(self):
-			self.assertRaises(rpncalc.NotEnoughOperands,self.interp.parse,'one')
+			self.assertRaises(errors.NotEnoughOperands,self.interp.parse,'one')
 
 	def test_not_enough_operands2(self):
-			self.assertRaises(rpncalc.NotEnoughOperands,self.interp.parse,'two')
+			self.assertRaises(errors.NotEnoughOperands,self.interp.parse,'two')
 
 			self.interp.parse('1')
 
-			self.assertRaises(rpncalc.NotEnoughOperands,self.interp.parse,'two')
+			self.assertRaises(errors.NotEnoughOperands,self.interp.parse,'two')
 
 class While(unittest.TestCase):
 	def setUp(self):
@@ -267,13 +269,13 @@ class While(unittest.TestCase):
 	def test_basic_countdown(self):
 		self.interp.parse('5 [ dup 1 - dup 0 < ] while')
 		result = [5, 4, 3, 2, 1, 0]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.assertEqual(self.interp.stack, result2)
 
 	def test_break(self):
 		self.interp.parse('1 2 3 4 5 6 7 [ 4 >= [ 4 break ] if 1 ] while')
 		result = [1, 2, 3, 4]
-		result2 = [rpncalc.Value(i) for i in result]
+		result2 = [rpn_types.Value(i) for i in result]
 		self.assertEqual(self.interp.stack, result2)
 
 	
@@ -287,18 +289,19 @@ class Bulk(unittest.TestCase):
 
 	def check_inline(self, test, result):
 		self.interp.parse(test)
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.assertEqual(str(self.interp.stack[0]), str(rpn_types.Value(result)))
+		#self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 	def check_function(self, test, result):
 		self.interp.parse(test)
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
-
+		self.assertEqual(str(self.interp.stack[0]), str(rpn_types.Value(result)))
+		#self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
 
 
 	def test_one(self):
-		self.interp.parse('5 1 2 + 4 * + 3 -')
-		result = 14
-		self.assertEqual(self.interp.stack, [rpncalc.Value(result)])
+		self.interp.parse(r'[1 2 3] \0 swap `')
+		result = 1
+		self.assertEqual(str(self.interp.stack[0]), str(rpn_types.Value(result)))
 
 
 bulk_tests = [('5 1 2 + 4 * + 3 -', 14),
@@ -308,7 +311,11 @@ bulk_tests = [('5 1 2 + 4 * + 3 -', 14),
 	      ('6 4 5 + * 25 2 3 + / -', 49),
 	      ('10 A = 20 B = + ', 30),
 	      ('10 A = 20 B = + drop A int', 10),
-	      ('10 A = 20 B = + drop B int', 20)]
+	      ('10 A = 20 B = + drop B int', 20),
+	      (r'[1 2 3] \0 swap `', 1),
+	      (r'[1 2 3] \1 swap `', 2),
+	      (r'[1 2 3] \2 swap `', 3),
+	      (r'[1 2 3] \3 swap `', 'NULL')]
 
 test_id = 0
 for test in bulk_tests:
