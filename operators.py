@@ -1,6 +1,7 @@
 import decimal
 import rpn_types
 import errors
+import copy
 
 def add(interp, b, a):
 	comment = ''
@@ -138,6 +139,13 @@ def call(interp, a):
 	else:
 		raise errors.CantExecute('Cannot Execute a Non-Function')
 
+def call_as_list(interp, a):
+	if type(a) is rpn_types.Function:
+		interp.call_as_list(a)
+	else:
+		raise errors.CantExecute('Cannot Execute a Non-Function')
+
+
 def condition_if(interp, func, condition):
 	if condition.val == 1:
 		if type(func) is rpn_types.Function:
@@ -188,7 +196,8 @@ def condition_while_break(interp):
 
 
 def duplicate(interp, a):
-	return [a, a]
+	new_a = copy.deepcopy(a)
+	return [a, new_a]
 
 def rotate(interp, a, b, c):
 	return [ b, a, c ]
@@ -232,7 +241,7 @@ def negate(interp, a):
 def binary(interp):
 	original = interp.stack[-1].mode
 	try:
-		interp.stack[-1].mode = DISPLAY_BIN
+		interp.stack[-1].mode = rpn_types.DISPLAY_BIN
 		str(interp.stack[-1])
 	except:
 		interp.stack[-1].mode = original
@@ -241,16 +250,17 @@ def binary(interp):
 def ascii_mode(interp):
 	original = interp.stack[-1].mode
 	try:
-		interp.stack[-1].mode = DISPLAY_ASCII
+		interp.stack[-1].mode = rpn_types.DISPLAY_ASCII
 		str(interp.stack[-1])
-	except:
+	except Exception as e:
+		raise e
 		interp.stack[-1].mode = original
 		interp.message("Could not change display mode to ascii for " + str(interp.stack[-1]))
 
 def hexadecimal(interp):
 	original = interp.stack[-1].mode
 	try:
-		interp.stack[-1].mode = DISPLAY_HEX
+		interp.stack[-1].mode = rpn_types.DISPLAY_HEX
 		str(interp.stack[-1])
 	except:
 		interp.stack[-1].mode = original
@@ -259,14 +269,14 @@ def hexadecimal(interp):
 def octal(interp):
 	original = interp.stack[-1].mode
 	try:
-		interp.stack[-1].mode = DISPLAY_OCT
+		interp.stack[-1].mode = rpn_types.DISPLAY_OCT
 		str(interp.stack[-1])
 	except:
 		interp.stack[-1].mode = original
 		interp.message("Could not change display mode to octal for " + str(interp.stack[-1]))
 
 def set_decimal(interp):
-	interp.stack[-1].mode = DISPLAY_DEC
+	interp.stack[-1].mode = rpn_types.DISPLAY_DEC
 
 def add_null(interp):
 	interp.push(rpn_types.NULL())
@@ -292,4 +302,8 @@ def concat(interp, item0, item1):
 
 	return [func]
 
-
+def halt_catch_fire(interp):
+	interp.debug = True
+	if interp.last_fault is not None:
+		interp.message("Catching Fire on " + str(interp.last_fault))
+		raise interp.last_fault

@@ -44,6 +44,7 @@ ops = {'+': operators.add, # tested
        '<=': operators.lequal, # tested
        'not': operators.negate, # tested
        '!': operators.call,
+       '!!': operators.call_as_list,
        'if': operators.condition_if,
        'ifelse': operators.condition_ifelse,
        'while': operators.condition_while,
@@ -58,7 +59,8 @@ ops = {'+': operators.add, # tested
        'ascii': operators.ascii_mode,
        'NULL': operators.add_null,
        'isnull': operators.is_null,
-       'cat': operators.concat}
+       'cat': operators.concat,
+       'hcf': operators.halt_catch_fire}
 
  #functions which cannot appear in a variable name. (ex: testsize will be a variable, but test+ will beak into test and +).
 inline_break = {'+': operators.add,
@@ -115,6 +117,9 @@ class Interpreter(object):
 		self.paused = False
 		self.broken_commands = []
 		self.child = None
+
+		self.debug = DEBUG
+		self.last_fault = None
 
 	def __str__(self):
 		stackstring = ''
@@ -230,6 +235,20 @@ class Interpreter(object):
 
 		self.absorb_child(i)
 
+	def call_as_list(self, function):
+		i = Interpreter(self.builtin_functions,self.inline_break_list,parent=self)
+		i.loop_count = self.loop_count
+		try:
+			for x in function.stack:
+				i.parse(str(x))
+		except errors.WhileBreak as e:
+			self.absorb_child(i)
+			raise e
+
+		f = rpn_types.Function()
+		f.stack = i.stack
+		self.push(f)
+
 	def step(self):
 		if self.child is None:
 			if len(self.broken_commands):
@@ -289,6 +308,7 @@ class Interpreter(object):
 						return
 
 				if self.in_string:
+					#TODO: make strings their own type or at least better integrate them into lists
 					for pos in xrange(len(input_string)):
 						if input_string[pos] == "'":
 							self.in_string = False
@@ -404,19 +424,41 @@ class Interpreter(object):
 										raise errors.NotEnoughOperands("Can't get subitem of an element that isn't there")
 									#self.push(item)
 									#self.message(str(item))
-									v = item.get_index(val)
-									self.parse(str(v))
+									try:
+										v = item.get_index(val)
+										self.parse(str(v))
+									except IndexError:
+										raise errors.OutOfBounds("Cannot access out of array bounds")
 									#self.message('parsing ' + str(v))
 									#self.push(rpn_types.Value(v))
 									return
-								except:
+								except ValueError:
+
+									if len(input_string) == 1:
+										varname = str(self.pop()[0].val)
+									varname = input_string[1:]
+									if self.stacksize() > 0:
+										item = self.pop()[0]
+										self.push(item)
+									else:
+										raise errors.NotEnoughOperands("Can't get subitem of an element that isn't there")
+									try:
+										v = item.get_var(varname)
+										self.parse(str(v))
+									except IndexError:
+										raise errors.OutOfBounds("Cannot access out of array bounds")
+									#self.message('parsing ' + str(v))
+									#self.push(rpn_types.Value(v))
+									return
+
 									raise
 
 							elif input_string[0] not in '0123456789.':
 								self.push(self.get_var(input_string))
 
-			except (errors.NotEnoughOperands, errors.CantAssign, errors.CantCloseBlock, errors.CantExecute, TypeError, AttributeError, decimal.DivisionByZero, errors.FunctionRequired) as e:
-				if not DEBUG:
+			except (errors.NotEnoughOperands, errors.CantAssign, errors.CantCloseBlock, errors.CantExecute, TypeError, AttributeError, decimal.DivisionByZero, errors.FunctionRequired, errors.OutOfBounds, errors.VarNotFound) as e:
+				self.last_fault = e
+				if not self.debug:
 					if root:
 						self.message('Stack Unchanged - ' + (e.message))
 						self.restore()
@@ -428,7 +470,7 @@ class Interpreter(object):
 				raise e
 
 			except Exception as e:
-				if not DEBUG:
+				if not self.debug:
 					if root:
 						self.message(str(e.message) + ' - Stack Unchanged')
 						self.restore()

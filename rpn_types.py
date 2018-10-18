@@ -1,3 +1,4 @@
+import errors
 
 DISPLAY_BIN = 2
 DISPLAY_DEC = 10
@@ -50,8 +51,23 @@ class Function(object):
 	def get_index(self, index):
 		if index < len(self.stack):
 			return self.stack[index]
+		elif (-1 * index) <= len(self.stack):
+			return self.stack[index]
 		else:
-			return NULL()
+			raise errors.OutOfBounds("Cannot acess data outside of bounds")
+
+	def get_var(self, varname):
+		for item in self.stack:
+			if isinstance(item, Variable):
+				if item.name == varname:
+					return item
+			elif isinstance(item, Function):
+				if item.name == varname:
+					return item
+
+		raise errors.VarNotFound("Variable " + varname + " was not found")
+	
+
 	
 	def pop(self, count = 1):
 		return self.stack.pop()
@@ -84,13 +100,13 @@ class Variable(object):
 		if self.mode == DISPLAY_DEC:
 			string += str(self.val)
 		elif self.mode == DISPLAY_HEX:
-			string += "Ox%X" % self.val
+			string += "Ox%X" % int(self.val)
 		elif self.mode == DISPLAY_OCT:
-			string += "0o%o" % self.val
+			string += "0o%o" % int(self.val)
 		elif self.mode == DISPLAY_BIN:
-			string += str(bin(self.val))
+			string += str(bin(int(self.val)))
 		elif self.mode == DISPLAY_ASCII:
-			string += str(repr(chr(self.val)))
+			string += str(repr(chr(int(self.val))))
 		string += ' ' + str(self.name) + ' = '
 		if self.comment:
 			string += ' ' + self.comment + '"'
@@ -153,6 +169,6 @@ class Value(object):
 		if index == 0:
 			return self
 		else:
-			return NULL()
+			raise errors.OutOfBounds("Cannot acess past '0' on scalar")
 
 

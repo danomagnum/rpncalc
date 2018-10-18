@@ -215,6 +215,51 @@ class SubroutineTest(unittest.TestCase):
 		self.interp.parse(function)
 		self.assertEqual(self.interp.stack, result2)
 
+	def test_references1(self):
+		# make sure we can reference all the elements in an array directly
+		tests = [(r'[1 2 3] \0 ', 1),
+		(r'[1 2 3] \1 ', 2),
+		(r'[1 2 3] \2 ', 3),
+		(r'[1 [2] 3] \1 ', '[ 2 ]'),
+		(r'[1 [2] 3] \1 \0', '2'),
+		(r'[1 [2] 3] \1 !', '2'),
+		(r'1 \0 ', 1)]
+
+		for t in tests:
+			self.interp.parse(t[0])
+			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
+
+	def test_references2(self):
+		# make sure we can reference all the elements in an array via parameter 
+		tests = [(r'[1 2 3] 0 \ swap `', 1),
+		(r'[1 2 3] 1 \ ', 2),
+		(r'[1 2 3] 2 \ ', 3),
+		(r'[1 [2] 3] 1 \ ', '[ 2 ]'),
+		(r'[1 [2] 3] 1 \ 0 \ ', '2'),
+		(r'[1 [2] 3] 1 \ ! ', '2'),
+		(r'1 0 \ ', 1)]
+
+		for t in tests:
+			self.interp.parse(t[0])
+			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
+
+	def test_references3(self):
+		# make sure we can't reference outside an array
+		tests = [(r'[1 2 3] \3 swap `'),
+		         (r'1 1 \ ')]
+		for t in tests:
+			self.assertRaises(errors.OutOfBounds,self.interp.parse,t)
+
+	def test_references4(self):
+		# make sure we reference up the sack out of a function
+		tests = [(r'[1 2 3] [ \2 ] !', '3')]
+
+		for t in tests:
+			self.interp.parse(t[0])
+			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
+
+
+
 class StringsTest(unittest.TestCase):
 	def setUp(self):
 		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
@@ -311,11 +356,7 @@ bulk_tests = [('5 1 2 + 4 * + 3 -', 14),
 	      ('6 4 5 + * 25 2 3 + / -', 49),
 	      ('10 A = 20 B = + ', 30),
 	      ('10 A = 20 B = + drop A int', 10),
-	      ('10 A = 20 B = + drop B int', 20),
-	      (r'[1 2 3] \0 swap `', 1),
-	      (r'[1 2 3] \1 swap `', 2),
-	      (r'[1 2 3] \2 swap `', 3),
-	      (r'[1 2 3] \3 swap `', 'NULL')]
+	      ('10 A = 20 B = + drop B int', 20)]
 
 test_id = 0
 for test in bulk_tests:
