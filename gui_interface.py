@@ -76,10 +76,10 @@ def parse(input_string):
 		elif text[0] == 'run':
 			interp.resume()
 		elif text[0] == 'import':
-			import_file(os.path.join(functions_directory, text[1]))
+			import_file(os.path.join(settings.functions_directory, text[1] + '.rpn'))
 
 		elif text[0] == 'export':
-			f = open(os.path.join(settings.functions_directory, text[1]), 'w+')
+			f = open(os.path.join(settings.functions_directory, text[1] + '.rpn'), 'w+')
 			commands = interp.stack[-1].stack
 			for cmd in commands:
 				f.write(cmd)

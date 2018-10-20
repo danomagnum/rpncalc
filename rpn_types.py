@@ -31,8 +31,14 @@ class Function(object):
 			return self 
 	def __str__(self):
 		name = ''
+		in_str = False
 		for x in self.stack:
-			name += str(x) + " "
+			if str(x) == "'":
+				in_str = not in_str
+			if in_str:
+				name += str(x)
+			else:
+				name += str(x) + " "
 		name = '[ ' + name + ']'
 
 		if self.name is not None:

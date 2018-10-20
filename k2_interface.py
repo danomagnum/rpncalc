@@ -1,6 +1,6 @@
 
 import kivy
-kivy.require('1.2.0')
+#kivy.require('1.2.0')
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
@@ -81,7 +81,7 @@ class Calculator(Widget):
 	def _execute(self, op):
 		if op in '1234567890.':
 			self.memorynum += op
-			self.entryline.value.text = self.memorynum
+			self.entryline.text = self.memorynum
 			return
 		else:
 			if self.memorynum:
@@ -95,7 +95,7 @@ class Calculator(Widget):
 				interp.step()
 			elif op == 'resume':
 				interp.run()
-		self.entryline.value.text = self.memorynum
+		self.entryline.text = self.memorynum
 
 		stack_size = len(interp.stack)
 		for x in xrange(len(self.stackdisplay)):
@@ -106,13 +106,13 @@ class Calculator(Widget):
 
 
 	def _setText(self, op):
-		if op == "." and "." in self.entryline.value.text:
+		if op == "." and "." in self.entryline.text:
 			return
 		if self.operation:
-			self.entryline.value.text = op
+			self.entryline.text = op
 			self.operation = False
 		else:
-			self.entryline.value.text += op
+			self.entryline.text += op
 
 	def setup_stack_display(self, count):
 		pass
@@ -151,10 +151,10 @@ class CalcApp(App):
 				pass
 			else:
 				print section, key, value
-	def build_settings(self, settings):
-		settings.add_json_panel('Customization',
-				self.config,
-				"settings_calc.json")
+	#def build_settings(self, settings):
+		#settings.add_json_panel('Customization',
+				#self.config,
+				#"settings_calc.json")
 	def on_pause(self):
 		return True
 	def on_resume(self):
