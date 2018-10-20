@@ -1,1 +1,21 @@
-
+[
+ max = drop
+ 1 i = drop
+ [
+   i 3 % 0 ==
+   [ i 5 % 0 == 
+     [ ['fb'] ]
+     [ ['f'] ]
+     ifelse
+   ]
+   [ i 5 % 0 ==
+     [ ['b'] ]
+     [ i ]
+     ifelse
+   ]
+   ifelse
+   i 1 + i =
+   max >=
+ ]
+ while
+] fizzbuzz = drop
