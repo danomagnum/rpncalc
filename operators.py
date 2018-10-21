@@ -107,27 +107,54 @@ def comment(interp, a, b):
 		raise errors.CantAssign('Cannot create comment')
 
 def equal(interp, a, b):
+	if type(b) is rpn_types.Function:
+		if type(a) is rpn_types.Function:
+			return [rpn_types.Value(int(b.stack == a.stack))]
+		else:
+			return False
+
+	if type(b.val) is rpn_types.NULL:
+		if type(a.val) is rpn_types.NULL:
+			return [rpn_types.Value(1)]
+		else:
+			return [rpn_types.Value(0)]
 	if a.val == b.val:
 		return [rpn_types.Value(1)]
 	else:
 		return [rpn_types.Value(0)]
 
 def lequal(interp, a, b):
+	if type(b.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
+	if type(a.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
 	if a.val <= b.val:
 		return [rpn_types.Value(1)]
 	else:
 		return [rpn_types.Value(0)]
 def gequal(interp, a, b):
+	if type(b.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
+	if type(a.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
 	if a.val >= b.val:
 		return [rpn_types.Value(1)]
 	else:
 		return [rpn_types.Value(0)]
 def less(interp, a, b):
+	if type(b.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
+	if type(a.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
 	if a.val < b.val:
 		return [rpn_types.Value(1)]
 	else:
 		return [rpn_types.Value(0)]
 def greater(interp, a, b):
+	if type(b.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
+	if type(a.val) is rpn_types.NULL:
+		return [rpn_types.Value(1)]
 	if a.val > b.val:
 		return [rpn_types.Value(1)]
 	else:
@@ -291,12 +318,14 @@ def concat(interp, item0, item1):
 
 	if type(item0) is not rpn_types.Function:
 		func = rpn_types.Function()
-		func.stack.insert(0, str(item0))
+		#func.stack.insert(0, str(item0))
+		func.stack.insert(0, item0)
 	else:
 		func = item0
 
 	if type(item1) is not rpn_types.Function:
-		func.stack.insert(0, str(item1))
+		func.stack.insert(0, item1)
+		#func.stack.insert(0, str(item1))
 	else:
 		func.stack = item1.stack + func.stack
 
