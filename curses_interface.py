@@ -40,10 +40,7 @@ for module in load_all_modules_from_dir('plugins'):
 function_list = rpncalc.ops.copy()
 function_list.update(loaded_plugins)
 
-if settings.allow_inline_breaks:
-	interp = rpncalc.Interpreter(function_list, rpncalc.inline_break)
-else:
-	interp = rpncalc.Interpreter(function_list, {})
+interp = rpncalc.Interpreter(function_list)
 
 
 class ShutErDownBoys(Exception):

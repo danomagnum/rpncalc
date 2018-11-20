@@ -37,19 +37,19 @@ ops = {'+': operators.add, # tested
        'pop': operators.pop,
        '?': operators.show_vars,
        '"': operators.comment,
-       '==': operators.equal, # tested
-       '>': operators.greater, # tested
-       '<': operators.less, # tested
-       '>=': operators.gequal, # tested
-       '<=': operators.lequal, # tested
-       'not': operators.negate, # tested
+       '==': operators.equal,
+       '>': operators.greater,
+       '<': operators.less,
+       '>=': operators.gequal,
+       '<=': operators.lequal,
+       'not': operators.negate,
        '!': operators.call,
        '!!': operators.call_as_list,
        'if': operators.condition_if,
        'ifelse': operators.condition_ifelse,
        'while': operators.condition_while,
        'break': operators.condition_while_break,
-       '^': operators.exponent, # tested
+       '^': operators.exponent,
        '\\size': operators.subsize,
        'size': operators.size,
        'bin': operators.binary,
@@ -60,37 +60,22 @@ ops = {'+': operators.add, # tested
        'NULL': operators.add_null,
        'isnull': operators.is_null,
        'cat': operators.concat,
-       'hcf': operators.halt_catch_fire}
+       'hcf': operators.halt_catch_fire,
+       '\\': operators.reference}
 
- #functions which cannot appear in a variable name. (ex: testsize will be a variable, but test+ will beak into test and +).
-inline_break = {'+': operators.add,
-                '-': operators.sub,
-                '*': operators.mult,
-                '/': operators.div,
-                '%': operators.modulus,
-                '=': operators.assign,
-                '`': operators.remove,
-                '?': operators.show_vars,
-                '\'': operators.comment,
-                '==': operators.equal,
-                '>': operators.greater,
-                '<': operators.less,
-                '>=': operators.gequal,
-                '<=': operators.lequal,
-                '!': operators.call,
-                '^': operators.exponent}
+FUNCSTART = '['
+FUNCEND = ']'
+BREAK = '@'
+
+FLOW_TOKENS = [FUNCSTART, FUNCEND, BREAK]
+
 
 class Interpreter(object):
-	def __init__(self, builtin_functions=None, inline_break_list=None, stack=None, parent=None):
+	def __init__(self, builtin_functions=None,  stack=None, parent=None):
 		if builtin_functions is None:
 			builtin_functions = {}
 
 		self.builtin_functions = builtin_functions
-
-		if inline_break_list is None:
-			inline_break_list = {}
-
-		self.inline_break_list = inline_break_list
 
 		if stack is None:
 			stack = []
@@ -224,7 +209,7 @@ class Interpreter(object):
 		self.messages += child.messages
 
 	def call(self, function):
-		i = Interpreter(self.builtin_functions,self.inline_break_list,parent=self)
+		i = Interpreter(self.builtin_functions,parent=self)
 		i.loop_count = self.loop_count
 		try:
 			for x in function.stack:
@@ -236,7 +221,7 @@ class Interpreter(object):
 		self.absorb_child(i)
 
 	def call_as_list(self, function):
-		i = Interpreter(self.builtin_functions,self.inline_break_list,parent=self)
+		i = Interpreter(self.builtin_functions,parent=self)
 		i.loop_count = self.loop_count
 		try:
 			for x in function.stack:
@@ -302,161 +287,49 @@ class Interpreter(object):
 			try:
 				# first split the input up into multiple components if there are any and parse them in order
 
-				if self.paused:
-					if not step:
-						self.broken_commands.append(input_string)
-						return
+				tokens = tokenize(self.operatorlist, input_string)
+				for token in tokens:
+					if self.paused:
+						if not step:
+							self.broken_commands.append(token)
+							continue
+					if type(token) is rpn_types.Flow_Control:
 
-				if self.in_string:
-					#TODO: make strings their own type or at least better integrate them into lists
-					for pos in xrange(len(input_string)):
-						if input_string[pos] == "'":
-							self.in_string = False
-							if self.function_depth > 0:
-								self.function_stack[self.function_depth - 1].append("'")
-							self.parse(input_string[(pos + 1):])
-							return
-						if self.function_depth == 0:
-							val = rpn_types.Value(ord(input_string[pos]))
-							val.mode = rpn_types.DISPLAY_ASCII
-							self.push(val)
-						else:
-							self.function_stack[self.function_depth - 1].append(input_string[pos])
-
-					self.message("String Mode")
-					return
-
-				elif '#' in input_string:
-					self.parse( input_string.split('#')[0])
-					return
-
-				elif ' ' in input_string:
-					if "'" in input_string:
-						nostring, string_data = input_string.split("'", 1)
-						self.parse(nostring)
-						if self.function_depth > 0:
-							self.function_stack[self.function_depth - 1].append("'")
-						self.in_string = True
-						self.parse(string_data)
-					else:
-						for subparse in input_string.split(' '):
-							self.parse(subparse)
-					return
-				else:
-
-					if '[' in input_string:
-						components = input_string.split('[')
-						for component in components[:-1]:
-							if component != '':
-								self.parse(component)
+						if token.val == FUNCSTART:
 							self.function_start()
-						if components[-1] != '':
-							self.parse(components[-1])
-						return
-					if ']' in input_string:
-						components = input_string.split(']')
-						for component in components[:-1]:
-							if component != '':
-								self.parse(component)
+							continue
+						if token.val == FUNCEND:
 							self.function_end()
-						if components[-1] != '':
-							self.parse(components[-1])
-						return
+							continue
 
 					if self.function_depth > 0:
-						self.function_stack[self.function_depth - 1].append(input_string)
-						return
-					elif input_string[0] == "'":
-						self.in_string = True
-						if len(input_string) > 1:
-							self.parse(input_string[1:])
+						self.function_stack[self.function_depth - 1].append(token)
+						continue
 
-						self.message("String Mode")
-						return
-					elif input_string == '@':
-						self.message("Break!")
-						self.paused = True
-						return
+					if type(token) is rpn_types.Flow_Control:
+						if token.val == BREAK:
+							self.message("Break!")
+							self.paused = True
+							continue
 
+					if type(token) is rpn_types.Value:
+						self.push(token)
+						continue
 
-					# check if the input is just a value.
-					try:
-						val = decimal.Decimal(input_string)
-						self.push(rpn_types.Value(val))
-						return
-					except:
-						#the input is not just a value so lets see if it is a function
-						if input_string in self.operatorlist:
-							func = self.builtin_functions[input_string]
-							argcount = len(inspect.getargspec(func).args) - 1
-							args = [self] + self.pop(argcount)
-							result = func(*args)
-							if result is not None:
-								for val in result:
-									self.push(val)
-							return
-						else:
-							#the input string is not just a function shorthand.
-							#search through the string and see if there are any functions here.
-							for funcname in self.inline_break_list:
-								if funcname in input_string:
-									components = input_string.split(funcname)
-									if components[-1] == '':
-										components = components[:-1]
-									for subparse in components:
-										if subparse != '':
-											self.parse(subparse)
-										self.parse(funcname)
-									return
-							#must be a variable
+					if type(token) is rpn_types.Operator:
+						func = self.builtin_functions[token.val]
+						argcount = len(inspect.getargspec(func).args) - 1
+						args = [self] + self.pop(argcount)
+						result = func(*args)
+						if result is not None:
+							for val in result:
+								self.push(val)
+						continue
 
-							if input_string[0] == '\\':
-								val = None
-								try:
-									if len(input_string) == 1:
-										val = int(self.pop()[0].val)
-									else:
-										val = int(input_string[1:])
-									if self.stacksize() > 0:
-										item = self.pop()[0]
-										self.push(item)
-									else:
-										raise errors.NotEnoughOperands("Can't get subitem of an element that isn't there")
-									#self.push(item)
-									#self.message(str(item))
-									try:
-										v = item.get_index(val)
-										self.parse(str(v))
-									except IndexError:
-										raise errors.OutOfBounds("Cannot access out of array bounds")
-									#self.message('parsing ' + str(v))
-									#self.push(rpn_types.Value(v))
-									return
-								except ValueError:
+					if type(token) is rpn_types.Variable_Placeholder:	
+						self.push(self.get_var(token.val))
 
-									if len(input_string) == 1:
-										varname = str(self.pop()[0].val)
-									varname = input_string[1:]
-									if self.stacksize() > 0:
-										item = self.pop()[0]
-										self.push(item)
-									else:
-										raise errors.NotEnoughOperands("Can't get subitem of an element that isn't there")
-									try:
-										v = item.get_var(varname)
-										self.parse(str(v))
-									except IndexError:
-										raise errors.OutOfBounds("Cannot access out of array bounds")
-									#self.message('parsing ' + str(v))
-									#self.push(rpn_types.Value(v))
-									return
-
-									raise
-
-							elif input_string[0] not in '0123456789.':
-								self.push(self.get_var(input_string))
-
-			except (errors.NotEnoughOperands, errors.CantAssign, errors.CantCloseBlock, errors.CantExecute, TypeError, AttributeError, decimal.DivisionByZero, errors.FunctionRequired, errors.OutOfBounds, errors.VarNotFound) as e:
+			except (errors.NotEnoughOperands, errors.CantAssign, errors.CantCloseBlock, errors.CantExecute, TypeError, AttributeError, decimal.DivisionByZero, errors.FunctionRequired, errors.OutOfBounds, errors.VarNotFound, ValueError) as e:
 				self.last_fault = e
 				if not self.debug:
 					if root:
@@ -503,3 +376,72 @@ class Interpreter(object):
 
 	def __len__(self):
 		return self.stacksize()
+
+def flatten(list_of_lists):
+	if type(list_of_lists) is str:
+		return list_of_lists
+	result = []
+	for sublist in list_of_lists:
+		if type(sublist) is str:
+			result.append(sublist)
+		else:
+			result.append(flatten(sublist))
+	return result
+
+def splitup(string):
+	result = []
+	comment = '#'
+	ignore = [' ', '']
+	break_tokens = ['[', ']',
+	                '+', '-', '*', '/', '^', '%',
+                        '`',
+                        '?',
+			' '
+			]
+
+	working = string.split(comment)[0]
+	working = working.split(' ')
+
+	for token in break_tokens:
+		subresult = []
+		for part in working:
+			if token in part:
+				parted = part.split(token)
+				for a in parted:
+					subresult.append(a)
+					subresult.append(token)
+				subresult.pop()
+			else:
+				subresult.append(part)
+		working = flatten(subresult)
+
+	working = [x for x in working if x not in ignore]
+
+	return working
+
+def tokenize(ops, input_string):
+
+	# first split the input string into a list of sub-strings
+	input_tokens = splitup(input_string)
+
+	output_tokens = []
+
+	for token in input_tokens:
+		if token in FLOW_TOKENS:
+			output_tokens.append(rpn_types.Flow_Control(token))
+			continue
+		# check if the input is just a value.
+		try:
+			val = decimal.Decimal(token)
+			output_tokens.append(rpn_types.Value(val))
+			continue
+		except:
+			#the input is not just a value so lets see if it is a function
+			if token in ops:
+				output_tokens.append(rpn_types.Operator(token))
+				continue
+			else:
+				output_tokens.append(rpn_types.Variable_Placeholder(token))
+				continue
+	
+	return output_tokens

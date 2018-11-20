@@ -4,10 +4,13 @@ import decimal
 import rpn_types
 import errors
 
+TEST_REFS = True
+TEST_STRINGS = False
+
 
 class BasicMath(unittest.TestCase):
 	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(rpncalc.ops)
 		self.x0 = 2
 		self.x1 = 3
 		self.interp.parse('%i %i' %(self.x0, self.x1))
@@ -47,7 +50,7 @@ class BasicMath(unittest.TestCase):
 
 class BasicComparisons(unittest.TestCase):
 	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(rpncalc.ops)
 		self.xbase = 53
 		self.interp.parse(str(self.xbase))
 
@@ -127,25 +130,25 @@ class BasicComparisons(unittest.TestCase):
 
 class SubroutineTest(unittest.TestCase):
 	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(rpncalc.ops)
 	
 	def test_simple(self):
 		function = '[ 2 ] '
 		function_stack = ['2']
 		self.interp.parse(function)
-		self.assertEqual(self.interp.stack[-1].stack, function_stack)
+		self.assertEqual([str(x) for x in self.interp.stack[-1].stack], function_stack)
 
 	def test_simple2(self):
 		function = '[ 2 3 ]'
 		function_stack = ['2', '3']
 		self.interp.parse(function)
-		self.assertEqual(self.interp.stack[-1].stack, function_stack)
+		self.assertEqual([str(x) for x in self.interp.stack[-1].stack], function_stack)
 
 	def test_simple3(self):
 		function = '[ 2 3  + ]'
 		function_stack = ['2', '3', '+']
 		self.interp.parse(function)
-		self.assertEqual(self.interp.stack[-1].stack, function_stack)
+		self.assertEqual([str(x) for x in self.interp.stack[-1].stack], function_stack)
 
 	def test_simple4(self):
 		function = '[ 2 3  + ] !'
@@ -153,13 +156,14 @@ class SubroutineTest(unittest.TestCase):
 		self.assertEqual(self.interp.stack[-1], rpn_types.Value(5))
 
 	def test_strings(self):
-		function = "[ 'hello world' ] !"
-		self.interp.parse(function)
-		result = []
-		for x in self.interp.stack:
-			result.append(chr(x.val))
-		result = ''.join(result)
-		self.assertEqual(result, 'hello world')
+		if TEST_STRINGS:
+			function = "[ 'hello world' ] !"
+			self.interp.parse(function)
+			result = []
+			for x in self.interp.stack:
+				result.append(chr(x.val))
+			result = ''.join(result)
+			self.assertEqual(result, 'hello world')
 
 	def test_nested(self):
 		function = '[ [ 2 3  + ] ! 7 + ] !'
@@ -216,62 +220,52 @@ class SubroutineTest(unittest.TestCase):
 		self.assertEqual(self.interp.stack, result2)
 
 	def test_references1(self):
-		# make sure we can reference all the elements in an array directly
-		tests = [(r'[1 2 3] \0 ', 1),
-		(r'[1 2 3] \1 ', 2),
-		(r'[1 2 3] \2 ', 3),
-		(r'[1 [2] 3] \1 ', '[ 2 ]'),
-		(r'[1 [2] 3] \1 \0', '2'),
-		(r'[1 [2] 3] \1 !', '2'),
-		(r'1 \0 ', 1)]
+		# make sure we can reference all the elements in an array via parameter 
+		if TEST_REFS:
+			tests = [(r'[1 2 3] 0 \ ', 1),
+			(r'[1 2 3] 1 \ ', 2),
+			(r'[1 2 3] 2 \ ', 3),
+			(r'[1 [2] 3] 1 \ ', '[ 2 ]'),
+			(r'[1 [2] 3] 1 \ 0 \ ', '2'),
+			(r'[1 [2] 3] 1 \ ! ', '2'),
+			(r'1 0 \ ', 1)]
 
-		for t in tests:
-			self.interp.parse(t[0])
-			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
+			for t in tests:
+				self.interp.parse(t[0])
+				self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
 
 	def test_references2(self):
-		# make sure we can reference all the elements in an array via parameter 
-		tests = [(r'[1 2 3] 0 \ swap `', 1),
-		(r'[1 2 3] 1 \ ', 2),
-		(r'[1 2 3] 2 \ ', 3),
-		(r'[1 [2] 3] 1 \ ', '[ 2 ]'),
-		(r'[1 [2] 3] 1 \ 0 \ ', '2'),
-		(r'[1 [2] 3] 1 \ ! ', '2'),
-		(r'1 0 \ ', 1)]
-
-		for t in tests:
-			self.interp.parse(t[0])
-			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
+		# make sure we can't reference outside an array
+		if TEST_REFS:
+			tests = [(r'[ 1 2 3 ] 3 \ '),
+				 (r'1 1 \ ')]
+			for t in tests:
+				self.assertRaises(errors.OutOfBounds,self.interp.parse,t)
 
 	def test_references3(self):
-		# make sure we can't reference outside an array
-		tests = [(r'[1 2 3] \3 swap `'),
-		         (r'1 1 \ ')]
-		for t in tests:
-			self.assertRaises(errors.OutOfBounds,self.interp.parse,t)
+		if TEST_REFS:
+			# make sure we reference up the sack out of a function
+			tests = [(r'[ 1 2 3 ] [ 2 \ ] !', '3')]
 
-	def test_references4(self):
-		# make sure we reference up the sack out of a function
-		tests = [(r'[1 2 3] [ \2 ] !', '3')]
-
-		for t in tests:
-			self.interp.parse(t[0])
-			self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
-
+			for t in tests:
+				self.interp.parse(t[0])
+				self.assertEqual(str(self.interp.stack[-1]), str(t[1]))
 
 
 class StringsTest(unittest.TestCase):
-	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
-	
-	def test_1(self):
-		function = "'hello world'"
-		self.interp.parse(function)
-		result = []
-		for x in self.interp.stack:
-			result.append(chr(x.val))
-		result = ''.join(result)
-		self.assertEqual(result, 'hello world')
+	if TEST_STRINGS:
+		def setUp(self):
+			self.interp = rpncalc.Interpreter(rpncalc.ops)
+		
+		def test_1(self):
+			function = "'hello world'"
+			self.interp.parse(function)
+			result = []
+			for x in self.interp.stack:
+				result.append(chr(x.val))
+			result = ''.join(result)
+			self.assertEqual(result, 'hello world')
+
 
 def example_operation_noparams(interp):
 	return []
@@ -285,7 +279,7 @@ class OperandCounts(unittest.TestCase):
 		paramlist = {'none':example_operation_noparams,
 		             'one': example_operation_oneparam,
 		             'two': example_operation_twoparam}
-		self.interp = rpncalc.Interpreter(paramlist, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(paramlist)
 
 	def test_not_enough_operands0(self):
 		try:
@@ -305,7 +299,7 @@ class OperandCounts(unittest.TestCase):
 
 class While(unittest.TestCase):
 	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(rpncalc.ops)
 
 	def test_break_outside_loop(self):
 		self.interp.parse('break')
@@ -326,7 +320,7 @@ class While(unittest.TestCase):
 	
 class Bulk(unittest.TestCase):
 	def setUp(self):
-		self.interp = rpncalc.Interpreter(rpncalc.ops, rpncalc.inline_break)
+		self.interp = rpncalc.Interpreter(rpncalc.ops)
 
 
 	def test_start(self):
@@ -341,12 +335,6 @@ class Bulk(unittest.TestCase):
 		self.interp.parse(test)
 		self.assertEqual(str(self.interp.stack[0]), str(rpn_types.Value(result)))
 		#self.assertEqual(self.interp.stack, [rpn_types.Value(result)])
-
-
-	def test_one(self):
-		self.interp.parse(r'[1 2 3] \0 swap `')
-		result = 1
-		self.assertEqual(str(self.interp.stack[0]), str(rpn_types.Value(result)))
 
 
 bulk_tests = [('5 1 2 + 4 * + 3 -', 14),

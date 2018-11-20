@@ -191,3 +191,58 @@ class Value(object):
 			raise errors.OutOfBounds("Cannot acess past '0' on scalar")
 
 
+class Operator(object):
+	def __init__(self, val=None, comment='') :
+		self.val = val
+		self.comment = comment
+	def __str__(self) :
+
+		string = str(self.val)
+		return string
+	def __len__(self):
+		return 1
+
+	def get_index(self, index):
+		if index == 0:
+			return self
+		else:
+			raise errors.OutOfBounds("Cannot acess past '0' on Operator")
+
+
+
+class Variable_Placeholder(object):
+	def __init__(self, val=None, comment='') :
+		self.val = val
+		self.comment = comment
+	def __str__(self) :
+
+		string = str(self.val)
+		return string
+	def __len__(self):
+		return 1
+
+	def get_index(self, index):
+		if index == 0:
+			return self
+		else:
+			raise errors.OutOfBounds("Cannot acess past '0' on Operator")
+
+
+class Flow_Control(object):
+	def __init__(self, val=None, comment='') :
+		self.val = val
+		self.comment = comment
+	def __str__(self) :
+
+		string = str(self.val)
+		return string
+	def __len__(self):
+		return 1
+
+	def get_index(self, index):
+		if index == 0:
+			return self
+		else:
+			raise errors.OutOfBounds("Cannot acess past '0' on Operator")
+
+
