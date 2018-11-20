@@ -26,3 +26,19 @@
 ] clear =
   drop
  
+# Calculates the solution to a quadratic equation
+ [ a = drop
+   b = drop
+   c = drop
+   b -1 * b 2 ^ 4 a * c * -
+   math.sqrt
+   dup 2 roll dup
+   2 roll
+   +
+   2 roll 2 roll swap
+   -
+   2 a * /
+   swap
+   2 a * /
+
+   ] quadsolve = drop

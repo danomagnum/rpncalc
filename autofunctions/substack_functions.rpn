@@ -1,0 +1,73 @@
+[
+ func = drop
+ list =
+ \size s = drop
+ drop
+ 0 i = drop
+ [
+  list
+  i \
+  func !
+  
+  i 1 + i = # see if we've made it all the way through the list
+  s >
+  ]
+ while
+]
+foreach = # set up the function name so we can recurse to it
+drop
+
+[
+ list =
+ \size  1 - s = drop
+ drop
+ [
+  list
+  s \
+  s 1 - s = # see if we've made it all the way through the list
+  0 <=
+  ]
+ while
+]
+reverse = # set up the function name so we can recurse to it
+drop
+
+[
+ NULL
+ maxval =
+ drop
+ [ dup maxval <
+   [ maxval = drop]
+   [ drop ]
+   ifelse
+ ]
+ foreach !
+ maxval
+ ] max = drop
+   
+[
+ NULL
+ minval =
+ drop
+ [ dup minval >
+   [ minval = drop]
+   [ drop ]
+   ifelse
+ ]
+ foreach !
+ minval
+ ] min = drop
+   
+[
+ val = drop
+ 0 swap
+ [
+  val
+  ==
+  [ drop 1 ]
+  if
+  ]
+  foreach !
+ ] in = drop
+
+
